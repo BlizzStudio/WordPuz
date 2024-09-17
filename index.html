@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Puzzle Game</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-purple-200 min-h-screen flex items-center justify-center p-4">
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="fixed inset-0 bg-purple-700 flex items-center justify-center text-white text-2xl font-bold">
+    Loading...
+  </div>
+
+  <!-- Welcome Screen -->
+  <div id="welcome-screen" class="hidden fixed inset-0 bg-white flex items-center justify-center p-8">
+    <div class="max-w-md w-full bg-white p-8 shadow-2xl rounded-lg text-center">
+      <h1 class="text-4xl font-extrabold mb-6 text-purple-700">Welcome to Word Puzzle Game!</h1>
+      <button id="start-game-button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-5 rounded-lg shadow-md w-full transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300">
+        Start Game
+      </button>
+ 
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="hidden max-w-lg w-full bg-white p-8 shadow-2xl rounded-lg">
+    <h1 class="text-4xl font-extrabold text-center mb-8 text-purple-700">Word Puzzle Game</h1>
+
+    <!-- Word List -->
+    <div class="mb-6">
+      <h2 class="text-2xl font-semibold mb-4 text-gray-800">Find these words:</h2>
+      <ul id="word-list" class="flex flex-wrap gap-3">
+        <!-- Words will be dynamically added here -->
+      </ul>
+    </div>
+
+    <!-- Puzzle Grid -->
+    <div id="puzzle-grid" class="grid grid-cols-6 gap-2 mb-8 select-none p-2 bg-gray-100 rounded-lg shadow-inner">
+      <!-- Puzzle letters will be dynamically added here -->
+    </div>
+
+    <!-- Reset Button -->
+    <button id="reset-button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-5 rounded-lg shadow-md w-full transition-transform transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300">
+      Reset Game
+    </button>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg p-6 w-80 shadow-lg">
+      <h3 class="text-2xl font-bold text-purple-700 mb-4">Congratulations!</h3>
+      <p id="modal-message" class="text-gray-700 mb-6"></p>
+      <button id="close-modal" class="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg w-full">
+        Close
+      </button>
+    </div>
+  </div>
+ <script>
+        let notificationInterval;
+
+        // Request permission to show notifications
+        document.addEventListener('DOMContentLoaded', function () {
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === 'granted') {
+                        startNotifications();
+                    }
+                });
+            } else {
+                startNotifications();
+            }
+        });
+
+        // Function to show notification
+        function showNotification() {
+            if (Notification.permission === 'granted') {
+                const notification = new Notification('Word Puz', {
+                    body: 'Ready to solve puzzles ?',
+                    icon: 'https://i.ibb.co/WskZQ69/Screenshot-2024-09-17-223324.png" alt="Screenshot-2024-09-17-223324">'
+                });
+
+                // Add a click event to the notification
+                notification.onclick = function () {
+                    window.open('https://your-website.com'); // Replace with your URL
+                };
+            } else {
+                console.error('Notifications are not allowed');
+            }
+        }
+
+        // Function to automatically start notifications every 10 hours
+        function startNotifications() {
+            // 10 hours = 10 * 60 * 60 * 1000 milliseconds = 36,000,000 milliseconds
+            const tenHoursInMilliseconds = 10 * 60 * 60 * 1000;
+            
+            // Schedule the notification to appear every 10 hours
+            notificationInterval = setInterval(showNotification, tenHoursInMilliseconds);
+
+            // Initial notification
+            showNotification();
+        }
+    </script>
+
+  <script>document.addEventListener("DOMContentLoaded", () => {
+  const words = ["CAT", "DOG", "BIRD", "FISH", "COW"];
+  const gridSize = 6;
+  const wordListElement = document.getElementById("word-list");
+  const puzzleGridElement = document.getElementById("puzzle-grid");
+  const resetButton = document.getElementById("reset-button");
+  const modal = document.getElementById("modal");
+  const modalMessage = document.getElementById("modal-message");
+  const closeModalButton = document.getElementById("close-modal");
+
+  const loadingScreen = document.getElementById("loading-screen");
+  const welcomeScreen = document.getElementById("welcome-screen");
+  const gameScreen = document.getElementById("game-screen");
+  const startGameButton = document.getElementById("start-game-button");
+
+  let selectedElements = [];
+
+  // Show loading screen and then transition to welcome screen
+  function showLoadingScreen() {
+    loadingScreen.classList.remove("hidden");
+    setTimeout(() => {
+      loadingScreen.classList.add("hidden");
+      showWelcomeScreen();
+    }, 2000); // Simulate loading time
+  }
+
+  // Show welcome screen
+  function showWelcomeScreen() {
+    welcomeScreen.classList.remove("hidden");
+  }
+
+  // Start the game
+  function startGame() {
+    welcomeScreen.classList.add("hidden");
+    gameScreen.classList.remove("hidden");
+    initGame();
+  }
+
+  // Initialize the game
+  function initGame() {
+    generateWordList();
+    generatePuzzleGrid();
+  }
+
+  // Generate word list
+  function generateWordList() {
+    wordListElement.innerHTML = "";
+    words.forEach(word => {
+      const wordItem = document.createElement("li");
+      wordItem.textContent = word;
+      wordItem.className = "p-2 bg-blue-100 rounded-lg text-gray-700 font-medium shadow-md hover:bg-blue-200 transition-colors";
+      wordListElement.appendChild(wordItem);
+    });
+  }
+
+  // Generate puzzle grid
+  function generatePuzzleGrid() {
+    puzzleGridElement.innerHTML = "";
+    const letters = "ABCDFHIOWTGR";
+
+    for (let i = 0; i < gridSize * gridSize; i++) {
+      const letterElement = document.createElement("div");
+      letterElement.textContent = letters[Math.floor(Math.random() * letters.length)];
+      letterElement.className = "w-10 h-10 flex items-center justify-center border border-gray-300 cursor-pointer rounded-lg bg-white shadow hover:bg-gray-100 transition-colors";
+      letterElement.dataset.index = i; // Assign index for easier handling
+      letterElement.addEventListener("click", selectLetter); // Add click event
+      puzzleGridElement.appendChild(letterElement);
+    }
+  }
+
+  // Select a letter on click
+  function selectLetter(event) {
+    const element = event.target;
+    
+    // If already selected, ignore further clicks
+    if (selectedElements.includes(element)) return;
+    
+    element.classList.add("selected");
+    selectedElements.push(element);
+
+    checkForWord(); // Check for word after each selection
+  }
+
+  // Check if selected letters form a correct word
+  function checkForWord() {
+    const selectedWord = selectedElements.map(el => el.textContent).join("");
+
+    if (words.includes(selectedWord)) {
+      showModal(`You found the word: ${selectedWord}`);
+      selectedElements.forEach(el => {
+        el.classList.remove("selected");
+        el.classList.add("correct");
+      });
+      selectedElements = []; // Clear selected elements after a correct word is found
+    }
+  }
+
+  // Show modal
+  function showModal(message) {
+    modalMessage.textContent = message;
+    modal.classList.remove("hidden");
+  }
+
+  // Hide modal
+  function hideModal() {
+    modal.classList.add("hidden");
+    clearSelection(); // Clear selection when closing the modal
+  }
+
+  // Clear selection
+  function clearSelection() {
+    selectedElements.forEach(el => el.classList.remove("selected"));
+    selectedElements = [];
+  }
+
+  // Reset the game
+  resetButton.addEventListener("click", () => {
+    initGame();
+  });
+
+  // Close modal button event
+  closeModalButton.addEventListener("click", hideModal);
+
+  // Start game button event
+  startGameButton.addEventListener("click", startGame);
+
+  // Start by showing the loading screen
+  showLoadingScreen();
+});
+</script>
+</body>
+</html>
